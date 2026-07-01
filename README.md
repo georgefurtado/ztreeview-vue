@@ -2,7 +2,7 @@
 
 Vue 3 native port of zTree v3 with TypeScript types and Tailwind-ready theming.
 
-This repository starts from the original jQuery zTree v3.5.48 API surface, but the new implementation removes jQuery entirely and renders with Vue state, props, emits, slots and exposed instance methods.
+This repository starts from the original jQuery zTree v3.5.48 API surface, but the active implementation removes jQuery entirely and renders with Vue state, props, emits, slots and exposed instance methods.
 
 ## Install
 
@@ -141,4 +141,4 @@ npm publish
 
 CI publishing is handled by `.github/workflows/publish.yml` on GitHub Release publication or manual workflow dispatch.
 
-The original `api/`, `demo/`, `js/` and `css/` folders are kept as migration references while the Vue-native implementation evolves.
+The original `demo/` folder is kept as a migration reference for porting examples incrementally. Legacy jQuery runtime/API/style folders were removed so the active package surface stays focused on the Vue-native implementation.
