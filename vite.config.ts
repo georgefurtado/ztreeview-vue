@@ -16,7 +16,11 @@ export default defineConfig({
         'tailwind-preset': fileURLToPath(new URL('./src/tailwind-preset.ts', import.meta.url))
       },
       name: 'ZTreeViewVue',
-      fileName: (_format, entryName) => entryName === 'index' ? 'ztreeview-vue.js' : `${entryName}.js`
+      formats: ['es', 'cjs'],
+      fileName: (format, entryName) => {
+        const baseName = entryName === 'index' ? 'ztreeview-vue' : entryName;
+        return `${baseName}.${format === 'es' ? 'mjs' : 'cjs'}`;
+      }
     },
     rollupOptions: {
       external: ['vue'],

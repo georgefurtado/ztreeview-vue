@@ -3,18 +3,22 @@
   "version": "0.1.0",
   "description": "Vue 3 native port of zTree with TypeScript types and Tailwind-ready theming.",
   "type": "module",
-  "main": "./dist/ztreeview-vue.js",
-  "module": "./dist/ztreeview-vue.js",
+  "main": "./dist/ztreeview-vue.cjs",
+  "module": "./dist/ztreeview-vue.mjs",
   "types": "./dist/index.d.ts",
   "style": "./dist/ztreeview-vue.css",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/ztreeview-vue.js",
-      "require": "./dist/ztreeview-vue.js"
+      "import": "./dist/ztreeview-vue.mjs",
+      "require": "./dist/ztreeview-vue.cjs"
     },
     "./style.css": "./dist/ztreeview-vue.css",
-    "./tailwind-preset": "./dist/tailwind-preset.js"
+    "./tailwind-preset": {
+      "types": "./dist/tailwind-preset.d.ts",
+      "import": "./dist/tailwind-preset.mjs",
+      "require": "./dist/tailwind-preset.cjs"
+    }
   },
   "files": [
     "dist"
