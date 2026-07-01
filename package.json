@@ -1,33 +1,59 @@
 {
-  "name": "@ztree/ztree_v3",
-  "description": "zTree is a multi-functional 'tree plug-ins.' based on jQuery. The main advantages of zTree includes excellent performance, flexible configuration, and the combination of multiple functions.",
-  "version": "3.5.48",
-  "homepage": "http://www.treejs.cn/v3/main.php",
-  "author": "zTree (https://github.com/zTree)",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://www.treejs.cn/v3/main.php#_license"
-    }
+  "name": "ztreeview-vue",
+  "version": "0.1.0",
+  "description": "Vue 3 native port of zTree with TypeScript types and Tailwind-ready theming.",
+  "type": "module",
+  "main": "./dist/ztreeview-vue.js",
+  "module": "./dist/ztreeview-vue.js",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/ztreeview-vue.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/ztreeview-vue.js",
+      "require": "./dist/ztreeview-vue.js"
+    },
+    "./style.css": "./dist/ztreeview-vue.css",
+    "./tailwind-preset": "./dist/tailwind-preset.js"
+  },
+  "files": [
+    "dist"
   ],
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build && vue-tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview --host 127.0.0.1"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zTree/zTree_v3.git"
-  },
-  "dependencies": {
-    "jquery": ">=1.4.4"
-  },
-  "engines": {
-    "node": ">=0.10.0"
+    "url": "git+https://github.com/georgefurtado/ztreeview-vue.git"
   },
   "keywords": [
     "tree",
-    "jquery",
-    "plug-in",
-    "plugin",
-    "ztree",
-    "html",
-    "node"
+    "vue",
+    "vue3",
+    "typescript",
+    "tailwind",
+    "ztree"
   ],
-  "typings": "index.d.ts"
+  "author": "George Furtado",
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@types/node": "^22.10.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.0",
+    "vue": "^3.5.0",
+    "vue-tsc": "^3.0.0"
+  }
 }

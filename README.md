@@ -1,51 +1,124 @@
-jQuery Tree Plugin ---- zTree  
-============
-last version :  3.5.48
+# zTreeView Vue
 
+Vue 3 native port of zTree v3 with TypeScript types and Tailwind-ready theming.
 
-zTree API : /api
+This repository starts from the original jQuery zTree v3.5.48 API surface, but the new implementation removes jQuery entirely and renders with Vue state, props, emits, slots and exposed instance methods.
 
+## Install
 
-zTree Demo : /demo
-
-
-Install
-============
-```
-npm install @ztree/ztree_v3
+```bash
+npm install ztreeview-vue
 ```
 
-Introduction of zTree (简介)
-============
-* zTree is a multi-functional "tree plug-ins." based on jQuery. The main advantages of zTree includes excellent performance, flexible configuration, and the combination of multiple functions.
-(zTree 是一个依靠 jQuery 实现的多功能 “树插件”。优异的性能、灵活的配置、多种功能的组合是 zTree 最大优点。)
+## Basic Usage
 
-* zTree is a free tree plug-in and uses the MIT license. 
-(zTree 是开源免费的软件, 使用 MIT 许可证)
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { ZTreeView, type ZTreeNode, type ZTreeSetting } from 'ztreeview-vue';
+import 'ztreeview-vue/style.css';
 
-* The code of zTree v3.x has been separated according to the various functions. You can only load the code you need. 
-(zTree v3.x 将核心代码按照功能进行了分割，不需要的代码可以不用加载)
-* zTree v3.x uses delay loading technique, which can easily load tens of thousands of nodes in seconds even in IE6 browser. 
-(采用了 延迟加载 技术，上万节点轻松加载，即使在 IE6 下也能基本做到秒杀)
-* Compatible with IE, FireFox?, Chrome, Opera, Safari and other browsers. 
-(兼容 IE、FireFox?、Chrome、Opera、Safari 等浏览器)
-* Support for JSON data. 
-(支持 JSON 数据)
-* Support for static and asynchronous data loading node. 
-(支持静态 和 Ajax 异步加载节点数据)
-* Replace the skin / custom icon flexibly. 
-(支持任意更换皮肤 / 自定义图标)
-* Support extremely flexible checkbox or radio selection function. 
-(支持极其灵活的 checkbox 或 radio 选择功能)
-* Provide enough incident response callback. 
-(提供多种事件响应回调)
-* Flexible editing (add / delete / change / search) functions, such as drag and drop nodes,you can even drag and drop multiple nodes. 
-(灵活的编辑（增/删/改/查）功能，可随意拖拽节点，还可以多节点拖拽哟)
-* Enable to generate multiple instances of zTree in one page. 
-(在一个页面内可同时生成多个 Tree 实例)
-* Simple parameters to achieve flexible configuration capabilities. 
-(简单的参数配置实现 灵活多变的功能)
-* To enhance performance, zTree transforms the js & css structure to provide excellent browser compatibility and make the development more easily
-(zTree v3.x（JQuery Tree 插件），性能全面提升，js & css 架构全面调整，提供更好的兼容性和易开发性)
+const nodes = ref<ZTreeNode[]>([
+  {
+    id: 1,
+    name: 'Root',
+    open: true,
+    children: [
+      { id: 11, name: 'Child checked', checked: true },
+      { id: 12, name: 'Child editable' }
+    ]
+  }
+]);
 
+const setting: ZTreeSetting = {
+  check: { enable: true },
+  edit: { enable: true },
+  view: { selectedMulti: true }
+};
+</script>
 
+<template>
+  <ZTreeView tree-id="demoTree" :nodes="nodes" :setting="setting" />
+</template>
+```
+
+## Vue API
+
+`<ZTreeView />` accepts:
+
+- `nodes`
+- `setting`
+- `treeId`
+- `checkedKeys`
+- `selectedKeys`
+- `modelValue`
+
+It emits Vue events for the main zTree interactions:
+
+- `node-click`
+- `node-dblclick`
+- `node-check`
+- `node-expand`
+- `node-collapse`
+- `node-remove`
+- `node-rename`
+- `async-success`
+- `async-error`
+- `drop`
+
+Slots are available for `switch`, `icon`, `checkbox`, `node` and `actions`.
+
+## zTree-Compatible Instance Methods
+
+Use a component ref to access familiar zTree methods:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { ZTreeView, type ZTreeInstance } from 'ztreeview-vue';
+
+const tree = ref<ZTreeInstance>();
+
+function expandEverything() {
+  tree.value?.expandAll(true);
+}
+</script>
+
+<template>
+  <ZTreeView ref="tree" :nodes="[]" />
+</template>
+```
+
+Implemented methods include `addNodes`, `removeNode`, `updateNode`, `expandNode`, `expandAll`, `selectNode`, `cancelSelectedNode`, `checkNode`, `checkAllNodes`, `getNodes`, `getSelectedNodes`, `getCheckedNodes`, `getNodeByParam`, `getNodesByFilter`, `transformTozTreeNodes`, `transformToArray`, `hideNode`, `showNode`, `moveNode`, `copyNode`, `editName`, `cancelEditName` and `reAsyncChildNodes`.
+
+## Tailwind Theme
+
+The package ships CSS variables and a Tailwind preset:
+
+```ts
+// tailwind.config.ts
+import zTreePreset from 'ztreeview-vue/tailwind-preset';
+
+export default {
+  presets: [zTreePreset],
+  content: ['./src/**/*.{vue,ts}']
+};
+```
+
+The default stylesheet uses semantic variables such as `--ztree-color-check`, `--ztree-color-selected-bg`, `--ztree-radius` and `--ztree-indent`. You can override those variables globally or on a wrapping element.
+
+Optional theme classes are included:
+
+- `ztree-theme-metro`
+- `ztree-theme-awesome`
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm run test
+npm run build
+```
+
+The original `api/`, `demo/`, `js/` and `css/` folders are kept as migration references while the Vue-native implementation evolves.
