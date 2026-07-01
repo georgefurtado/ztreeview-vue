@@ -198,7 +198,7 @@ export interface ZTreeInstance {
   addNodes: (parentNode: ZTreeNode | null, index?: number, newNodes?: ZTreeNode[] | ZTreeNode, isSilent?: boolean) => ZTreeNode[];
   cancelEditName: (newName?: string) => void;
   cancelSelectedNode: (treeNode?: ZTreeNode) => void;
-  checkAllNodes: (checked: boolean) => void;
+  checkAllNodes: (checked: boolean, isSilent?: boolean) => void;
   checkNode: (treeNode: ZTreeNode, checked?: boolean, checkTypeFlag?: boolean, callbackFlag?: boolean) => void;
   copyNode: (targetNode: ZTreeNode | null, treeNode: ZTreeNode, moveType: ZTreeMoveType, isSilent?: boolean) => ZTreeNode | null;
   editName: (treeNode: ZTreeNode) => void;

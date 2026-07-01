@@ -99,6 +99,10 @@ export function useZTree(options: UseZTreeOptions = {}) {
     return flatten(roots.value, setting.value).filter((node) => Boolean(node.checked) === checked);
   }
 
+  function getNodeKeys(nodes: ZTreeNode[]): ZTreeNodeKey[] {
+    return nodes.map((node) => getNodeKey(setting.value, node)).filter((key): key is ZTreeNodeKey => key !== undefined);
+  }
+
   function getSelectedNodes(): ZTreeNode[] {
     return selectedNodes.value;
   }
@@ -107,13 +111,17 @@ export function useZTree(options: UseZTreeOptions = {}) {
     return flatten(roots.value, setting.value).filter((node) => !node.isHidden);
   }
 
+  function getCheckableNodes(): ZTreeNode[] {
+    return flatten(roots.value, setting.value).filter((node) => !node.isHidden && !node.nocheck && !node.chkDisabled);
+  }
+
   function getExpandableNodes(): ZTreeNode[] {
     return flatten(roots.value, setting.value).filter((node) => node.isParent && !node.isHidden);
   }
 
   const allNodesSelected = computed(() => {
-    const nodes = getSelectableNodes();
-    return nodes.length > 0 && nodes.every((node) => selectedNodes.value.includes(node));
+    const nodes = setting.value.check.enable ? getCheckableNodes() : getSelectableNodes();
+    return nodes.length > 0 && nodes.every((node) => setting.value.check.enable ? node.checked : selectedNodes.value.includes(node));
   });
 
   const allNodesExpanded = computed(() => {
@@ -128,19 +136,39 @@ export function useZTree(options: UseZTreeOptions = {}) {
   function selectNode(node: ZTreeNode, addFlag = false, isSilent = false): void {
     if (!setting.value.view.selectedMulti || !addFlag) selectedNodes.value = [];
     if (!selectedNodes.value.includes(node)) selectedNodes.value = [...selectedNodes.value, node];
-    if (!isSilent) options.emit?.('update:selectedKeys', selectedNodes.value.map((selected) => getNodeKey(setting.value, selected)).filter(Boolean));
+    if (!isSilent) options.emit?.('update:selectedKeys', getNodeKeys(selectedNodes.value));
   }
 
   function emitSelectedKeys(): void {
-    options.emit?.('update:selectedKeys', selectedNodes.value.map((selected) => getNodeKey(setting.value, selected)).filter(Boolean));
+    options.emit?.('update:selectedKeys', getNodeKeys(selectedNodes.value));
+  }
+
+  function emitCheckedKeys(): void {
+    options.emit?.('update:checkedKeys', getNodeKeys(getCheckedNodes(true)));
+  }
+
+  function syncSelectedFromChecked(isSilent = false): void {
+    selectedNodes.value = getCheckedNodes(true).filter((node) => !node.isHidden);
+    if (!isSilent) emitSelectedKeys();
   }
 
   function selectAllNodes(isSilent = false): void {
+    if (setting.value.check.enable) {
+      checkAllNodes(true, isSilent);
+      return;
+    }
+
     selectedNodes.value = getSelectableNodes();
     if (!isSilent) emitSelectedKeys();
   }
 
   function cancelSelectedNode(node?: ZTreeNode): void {
+    if (setting.value.check.enable) {
+      if (node) checkNode(node, false, true, false);
+      else checkAllNodes(false);
+      return;
+    }
+
     selectedNodes.value = node ? selectedNodes.value.filter((selected) => selected !== node) : [];
     emitSelectedKeys();
   }
@@ -215,16 +243,22 @@ export function useZTree(options: UseZTreeOptions = {}) {
       else node.checked = checked;
       repairParentCheckState(node.getParentNode?.() ?? null);
     }
-    options.emit?.('update:checkedKeys', getCheckedNodes(true).map((checkedNode) => getNodeKey(setting.value, checkedNode)).filter(Boolean));
+    if (setting.value.check.enable) syncSelectedFromChecked();
+    emitCheckedKeys();
   }
 
-  function checkAllNodes(checked: boolean): void {
+  function checkAllNodes(checked: boolean, isSilent = false): void {
     for (const node of flatten(roots.value, setting.value)) {
       if (!node.nocheck && !node.chkDisabled) {
         node.checked = checked;
         node.halfCheck = false;
         node.check_Child_State = checked ? 2 : 0;
       }
+    }
+    if (setting.value.check.enable) syncSelectedFromChecked(true);
+    if (!isSilent) {
+      emitCheckedKeys();
+      emitSelectedKeys();
     }
   }
 

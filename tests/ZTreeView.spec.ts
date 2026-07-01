@@ -154,6 +154,56 @@ describe('ZTreeView', () => {
     expect(button.text()).toContain('Selecionar todos');
   });
 
+  it('checks and unchecks all nodes from the toolbar when checkbox mode is enabled', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: true,
+            children: [{ id: 2, name: 'Child' }]
+          }
+        ],
+        setting: { check: { enable: true } }
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+    const button = wrapper.find('[data-testid="ztree-toggle-select-all"]');
+
+    await button.trigger('click');
+    expect(instance.getCheckedNodes().map((node) => node.name)).toEqual(['Root', 'Child']);
+    expect(instance.getSelectedNodes().map((node) => node.name)).toEqual(['Root', 'Child']);
+    expect(wrapper.findAll('.ztree-check.checked')).toHaveLength(2);
+    expect(wrapper.emitted('update:checkedKeys')?.at(-1)?.[0]).toEqual([1, 2]);
+    expect(wrapper.emitted('update:selectedKeys')?.at(-1)?.[0]).toEqual([1, 2]);
+
+    await button.trigger('click');
+    expect(instance.getCheckedNodes()).toHaveLength(0);
+    expect(instance.getSelectedNodes()).toHaveLength(0);
+    expect(wrapper.findAll('.ztree-check.checked')).toHaveLength(0);
+    expect(wrapper.emitted('update:checkedKeys')?.at(-1)?.[0]).toEqual([]);
+    expect(wrapper.emitted('update:selectedKeys')?.at(-1)?.[0]).toEqual([]);
+  });
+
+  it('treats a checked node as a selected node', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root' }],
+        setting: { check: { enable: true } }
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    await wrapper.find('.ztree-check').trigger('click');
+    expect(instance.getCheckedNodes().map((node) => node.name)).toEqual(['Root']);
+    expect(instance.getSelectedNodes().map((node) => node.name)).toEqual(['Root']);
+    expect(wrapper.emitted('update:checkedKeys')?.at(-1)?.[0]).toEqual([1]);
+    expect(wrapper.emitted('update:selectedKeys')?.at(-1)?.[0]).toEqual([1]);
+  });
+
   it('expands and collapses all parent nodes from the toolbar', async () => {
     const wrapper = mount(ZTreeView, {
       props: {
