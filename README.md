@@ -29,10 +29,12 @@ const nodes = ref<ZTreeNode[]>([
   {
     id: 1,
     name: 'Root',
+    icon: 'fa fa-folder',
+    color: '#1d4ed8',
     open: true,
     children: [
-      { id: 11, name: 'Child checked', checked: true },
-      { id: 12, name: 'Child editable' }
+      { id: 11, name: 'Child checked', checked: true, icon: 'fa fa-check' },
+      { id: 12, name: 'Child editable', color: '#16a34a' }
     ]
   }
 ]);
@@ -74,6 +76,39 @@ It emits Vue events for the main zTree interactions:
 - `drop`
 
 Slots are available for `switch`, `icon`, `checkbox`, `node` and `actions`.
+
+## Node Display Properties
+
+Each `ZTreeNode` supports display-oriented properties in addition to the zTree-compatible fields:
+
+- `color`: applies an inline text color to the rendered item label.
+- `icon`: renders an `<i>` before the item text when the value is not empty.
+
+Example:
+
+```ts
+const nodes: ZTreeNode[] = [
+  {
+    id: 1,
+    name: 'Financeiro',
+    color: '#0f766e',
+    icon: 'fa fa-folder'
+  },
+  {
+    id: 2,
+    name: 'Relatorio',
+    icon: 'bi bi-file-earmark-text'
+  }
+];
+```
+
+`icon` is treated as a CSS class string, not as an image URL. The component renders it like this:
+
+```html
+<i class="ztree-node-text-icon fa fa-folder" aria-hidden="true"></i>
+```
+
+The component does not bundle an icon font and does not force `font-family` on `ztree-node-text-icon`. Load Font Awesome, Bootstrap Icons, Material Symbols or your own icon font/CSS in the parent application.
 
 ## zTree-Compatible Instance Methods
 

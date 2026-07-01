@@ -117,6 +117,31 @@ describe('ZTreeView', () => {
     expect(wrapper.find('.ztree-node-name').attributes('style')).toContain('color: rgb(220, 38, 38)');
   });
 
+  it('renders node icon classes next to the item text', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root', icon: 'fa fa-folder' }]
+      }
+    });
+
+    const textIcon = wrapper.find('.ztree-node-name .ztree-node-text-icon');
+
+    expect(textIcon.exists()).toBe(true);
+    expect(textIcon.classes()).toEqual(expect.arrayContaining(['ztree-node-text-icon', 'fa', 'fa-folder']));
+    expect(wrapper.find('.ztree-icon img').exists()).toBe(false);
+  });
+
+  it('does not render legacy image icons from the icon property', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root', icon: 'material-symbols-outlined' }]
+      }
+    });
+
+    expect(wrapper.find('.ztree-icon img').exists()).toBe(false);
+    expect(wrapper.find('.ztree-node-name .ztree-node-text-icon').classes()).toContain('material-symbols-outlined');
+  });
+
   it('uses plus and minus symbols for collapsed and expanded parent nodes', async () => {
     const wrapper = mount(ZTreeView, {
       props: {

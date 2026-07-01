@@ -174,20 +174,18 @@
   width: 18px;
 }
 
-.ztree-icon:empty::before {
-  content: "";
-  border: 1px solid var(--ztree-color-border);
-  border-radius: 2px;
-  display: block;
-  height: 12px;
-  width: 12px;
-}
-
 .ztree-node-name {
   color: inherit;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.ztree-node-text-icon {
+  color: currentColor;
+  display: inline-flex;
+  line-height: inherit;
+  margin-inline-end: 4px;
 }
 
 .ztree-rename-input {

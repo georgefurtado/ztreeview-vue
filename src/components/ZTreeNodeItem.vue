@@ -37,7 +37,7 @@ const nodeTitle = computed(() => {
   return render?.(props.node) ?? String(props.node[key] ?? props.node.title ?? nodeName.value);
 });
 const nodeUrl = computed(() => String(props.node[tree.setting.value.data.key.url ?? 'url'] ?? props.node.url ?? ''));
-const iconUrl = computed(() => String(props.node[tree.setting.value.data.key.icon ?? 'icon'] ?? props.node.icon ?? ''));
+const nodeTextIconClass = computed(() => String(props.node[tree.setting.value.data.key.icon ?? 'icon'] ?? props.node.icon ?? '').trim());
 const fontCss = computed(() => {
   const css = tree.setting.value.view.fontCss;
   return typeof css === 'function' ? css(tree.setting.value.treeId, props.node) : css;
@@ -197,9 +197,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         :class="[node.iconSkin, node.open ? 'open' : 'close']"
         aria-hidden="true"
       >
-        <slot name="icon" :node="node" :open="node.open">
-          <img v-if="iconUrl" :src="iconUrl" alt="" />
-        </slot>
+        <slot name="icon" :node="node" :open="node.open" />
       </span>
 
       <input
@@ -221,6 +219,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         @click.stop="onClick"
       >
         <slot name="node" :node="node" :selected="isSelected" :checked="node.checked">
+          <i v-if="nodeTextIconClass" class="ztree-node-text-icon" :class="nodeTextIconClass" aria-hidden="true" />
           <span v-if="tree.setting.value.view.nameIsHTML" v-html="nodeName" />
           <span v-else>{{ nodeName }}</span>
         </slot>
@@ -232,6 +231,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         :style="nodeTextStyle"
       >
         <slot name="node" :node="node" :selected="isSelected" :checked="node.checked">
+          <i v-if="nodeTextIconClass" class="ztree-node-text-icon" :class="nodeTextIconClass" aria-hidden="true" />
           <span v-if="tree.setting.value.view.nameIsHTML" v-html="nodeName" />
           <span v-else>{{ nodeName }}</span>
         </slot>
