@@ -6,7 +6,10 @@
   --ztree-color-hover-bg: #f3f4f6;
   --ztree-color-border: #d1d5db;
   --ztree-color-guide: #9ca3af;
+  --ztree-color-check-bg: #ffffff;
   --ztree-color-check: #2563eb;
+  --ztree-color-check-border: #64748b;
+  --ztree-color-check-hover-border: #2563eb;
   --ztree-color-danger: #dc2626;
   --ztree-radius: 4px;
   --ztree-row-height: 28px;
@@ -133,10 +136,15 @@
 }
 
 .ztree-check {
-  border: 1px solid var(--ztree-color-border);
+  background: var(--ztree-color-check-bg);
+  border: 2px solid var(--ztree-color-check-border);
   border-radius: 2px;
   height: 16px;
   width: 16px;
+}
+
+.ztree-check:hover:not(:disabled) {
+  border-color: var(--ztree-color-check-hover-border);
 }
 
 .ztree-check.checked,
