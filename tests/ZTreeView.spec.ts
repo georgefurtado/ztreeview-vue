@@ -38,4 +38,32 @@ describe('ZTreeView', () => {
     const instance = wrapper.vm as unknown as ZTreeInstance;
     expect(instance.getSelectedNodes().map((node) => node.name)).toEqual(['Root']);
   });
+
+  it('applies level-based indentation to each rendered row', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: true,
+            children: [
+              {
+                id: 2,
+                name: 'Child',
+                open: true,
+                children: [{ id: 3, name: 'Grandchild' }]
+              }
+            ]
+          }
+        ]
+      }
+    });
+
+    const rows = wrapper.findAll('.ztree-node-row');
+
+    expect(rows[0].attributes('style')).toContain('calc(0 * var(--ztree-indent) + 4px)');
+    expect(rows[1].attributes('style')).toContain('calc(1 * var(--ztree-indent) + 4px)');
+    expect(rows[2].attributes('style')).toContain('calc(2 * var(--ztree-indent) + 4px)');
+  });
 });

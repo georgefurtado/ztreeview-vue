@@ -31,7 +31,7 @@
 }
 
 .ztree-children {
-  margin-left: var(--ztree-indent);
+  margin-left: 0;
 }
 
 .ztree-node-row {

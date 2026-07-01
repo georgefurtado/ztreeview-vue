@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref } from 'vue';
+import type { StyleValue } from 'vue';
 import type { ZTreeMoveType, ZTreeNode } from '../types';
 import { zTreeContextKey } from './context';
 
@@ -41,6 +42,12 @@ const fontCss = computed(() => {
   const css = tree.setting.value.view.fontCss;
   return typeof css === 'function' ? css(tree.setting.value.treeId, props.node) : css;
 });
+const rowStyle = computed<StyleValue>(() => [
+  fontCss.value,
+  {
+    paddingInlineStart: `calc(${props.node.level ?? 0} * var(--ztree-indent) + 4px)`
+  }
+]);
 const nodeClasses = computed(() => {
   const configured = tree.setting.value.view.nodeClasses;
   const classes = typeof configured === 'function' ? configured(tree.setting.value.treeId, props.node) : configured;
@@ -146,7 +153,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
     <div
       class="ztree-node-row"
       :class="nodeClasses"
-      :style="fontCss"
+      :style="rowStyle"
       draggable="true"
       @click="onClick"
       @dblclick="onDblClick"
