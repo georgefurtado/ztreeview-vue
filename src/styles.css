@@ -80,6 +80,7 @@
 
 .ztree-check {
   border: 1px solid var(--ztree-color-border);
+  border-radius: 2px;
   height: 16px;
   width: 16px;
 }

@@ -66,4 +66,23 @@ describe('ZTreeView', () => {
     expect(rows[1].attributes('style')).toContain('calc(1 * var(--ztree-indent) + 4px)');
     expect(rows[2].attributes('style')).toContain('calc(2 * var(--ztree-indent) + 4px)');
   });
+
+  it('renders checkbox style separately from radio style', () => {
+    const checkboxWrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root' }],
+        setting: { check: { enable: true, chkStyle: 'checkbox' } }
+      }
+    });
+    const radioWrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root' }],
+        setting: { check: { enable: true, chkStyle: 'radio' } }
+      }
+    });
+
+    expect(checkboxWrapper.find('.ztree-check').classes()).toContain('checkbox');
+    expect(checkboxWrapper.find('.ztree-check').classes()).not.toContain('radio');
+    expect(radioWrapper.find('.ztree-check').classes()).toContain('radio');
+  });
 });
