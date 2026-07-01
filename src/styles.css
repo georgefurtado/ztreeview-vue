@@ -5,6 +5,7 @@
   --ztree-color-selected-text: #1e3a8a;
   --ztree-color-hover-bg: #f3f4f6;
   --ztree-color-border: #d1d5db;
+  --ztree-color-guide: #9ca3af;
   --ztree-color-check: #2563eb;
   --ztree-color-danger: #dc2626;
   --ztree-radius: 4px;
@@ -41,7 +42,18 @@
   gap: 4px;
   min-height: var(--ztree-row-height);
   padding: 1px 4px;
+  position: relative;
   width: fit-content;
+}
+
+.ztree-node-row.has-level-guide::before {
+  border-left: 1px dotted var(--ztree-color-guide);
+  bottom: 2px;
+  content: "";
+  left: calc(var(--ztree-level) * var(--ztree-indent));
+  pointer-events: none;
+  position: absolute;
+  top: 2px;
 }
 
 .ztree-node-row:hover {
@@ -69,8 +81,16 @@
 }
 
 .ztree-switch {
+  font-weight: 700;
   height: 20px;
+  line-height: 1;
   width: 20px;
+}
+
+.ztree-switch-symbol {
+  display: inline-block;
+  min-width: 1ch;
+  text-align: center;
 }
 
 .ztree-switch:disabled {

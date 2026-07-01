@@ -67,6 +67,27 @@ describe('ZTreeView', () => {
     expect(rows[2].attributes('style')).toContain('calc(2 * var(--ztree-indent) + 4px)');
   });
 
+  it('marks nested rows with a level guide class and CSS level variable', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: true,
+            children: [{ id: 2, name: 'Child' }]
+          }
+        ]
+      }
+    });
+
+    const rows = wrapper.findAll('.ztree-node-row');
+
+    expect(rows[0].classes()).not.toContain('has-level-guide');
+    expect(rows[1].classes()).toContain('has-level-guide');
+    expect(rows[1].attributes('style')).toContain('--ztree-level: 1');
+  });
+
   it('renders checkbox style separately from radio style', () => {
     const checkboxWrapper = mount(ZTreeView, {
       props: {
@@ -84,5 +105,26 @@ describe('ZTreeView', () => {
     expect(checkboxWrapper.find('.ztree-check').classes()).toContain('checkbox');
     expect(checkboxWrapper.find('.ztree-check').classes()).not.toContain('radio');
     expect(radioWrapper.find('.ztree-check').classes()).toContain('radio');
+  });
+
+  it('uses plus and minus symbols for collapsed and expanded parent nodes', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: false,
+            children: [{ id: 2, name: 'Child' }]
+          }
+        ]
+      }
+    });
+
+    const switchButton = wrapper.find('.ztree-switch');
+
+    expect(switchButton.text()).toBe('+');
+    await switchButton.trigger('click');
+    expect(wrapper.find('.ztree-switch').text()).toBe('-');
   });
 });

@@ -45,6 +45,7 @@ const fontCss = computed(() => {
 const rowStyle = computed<StyleValue>(() => [
   fontCss.value,
   {
+    '--ztree-level': props.node.level ?? 0,
     paddingInlineStart: `calc(${props.node.level ?? 0} * var(--ztree-indent) + 4px)`
   }
 ]);
@@ -152,7 +153,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
   >
     <div
       class="ztree-node-row"
-      :class="nodeClasses"
+      :class="[nodeClasses, { 'has-level-guide': (node.level ?? 0) > 0 }]"
       :style="rowStyle"
       draggable="true"
       @click="onClick"
@@ -171,7 +172,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         @drop.stop="drop($event, 'prev')"
       >
         <slot name="switch" :node="node" :open="node.open" :is-parent="node.isParent">
-          <span v-if="node.isParent">{{ node.open ? '▾' : '▸' }}</span>
+          <span v-if="node.isParent" class="ztree-switch-symbol">{{ node.open ? '-' : '+' }}</span>
         </slot>
       </button>
 
