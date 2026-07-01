@@ -52,7 +52,16 @@
   font: 12px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   gap: 5px;
   min-height: 26px;
+  min-width: 54px;
   padding: 3px 8px;
+}
+
+.ztree-toolbar-icon {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  width: 1.2em;
 }
 
 .ztree-toolbar-button:hover:not(:disabled) {

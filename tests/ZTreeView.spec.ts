@@ -182,11 +182,13 @@ describe('ZTreeView', () => {
 
     await button.trigger('click');
     expect(instance.getSelectedNodes().map((node) => node.name)).toEqual(['Root', 'Child']);
-    expect(button.text()).toContain('Desselecionar todos');
+    expect(button.text()).toContain('☑ All');
+    expect(button.attributes('aria-label')).toBe('Desselecionar todos');
 
     await button.trigger('click');
     expect(instance.getSelectedNodes()).toHaveLength(0);
-    expect(button.text()).toContain('Selecionar todos');
+    expect(button.text()).toContain('☐ All');
+    expect(button.attributes('aria-label')).toBe('Selecionar todos');
   });
 
   it('checks and unchecks all nodes from the toolbar when checkbox mode is enabled', async () => {
@@ -260,10 +262,12 @@ describe('ZTreeView', () => {
     expect(root?.open).toBe(false);
     await button.trigger('click');
     expect(root?.open).toBe(true);
-    expect(button.text()).toContain('Colapsar todos');
+    expect(button.text()).toContain('⊟ All');
+    expect(button.attributes('aria-label')).toBe('Colapsar todos');
 
     await button.trigger('click');
     expect(root?.open).toBe(false);
-    expect(button.text()).toContain('Expandir todos');
+    expect(button.text()).toContain('⊞ All');
+    expect(button.attributes('aria-label')).toBe('Expandir todos');
   });
 });

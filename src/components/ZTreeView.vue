@@ -62,10 +62,11 @@ defineExpose(tree.api);
         data-testid="ztree-toggle-select-all"
         :disabled="tree.roots.value.length === 0"
         :aria-pressed="tree.allNodesSelected.value"
+        :aria-label="tree.allNodesSelected.value ? 'Desselecionar todos' : 'Selecionar todos'"
         @click="tree.toggleSelectAll"
       >
-        <span aria-hidden="true">{{ tree.allNodesSelected.value ? '×' : '✓' }}</span>
-        {{ tree.allNodesSelected.value ? 'Desselecionar todos' : 'Selecionar todos' }}
+        <span class="ztree-toolbar-icon" aria-hidden="true">{{ tree.allNodesSelected.value ? '☑' : '☐' }}</span>
+        All
       </button>
       <button
         type="button"
@@ -73,10 +74,11 @@ defineExpose(tree.api);
         data-testid="ztree-toggle-expand-all"
         :disabled="tree.roots.value.length === 0"
         :aria-pressed="tree.allNodesExpanded.value"
+        :aria-label="tree.allNodesExpanded.value ? 'Colapsar todos' : 'Expandir todos'"
         @click="tree.toggleExpandAll"
       >
-        <span aria-hidden="true">{{ tree.allNodesExpanded.value ? '-' : '+' }}</span>
-        {{ tree.allNodesExpanded.value ? 'Colapsar todos' : 'Expandir todos' }}
+        <span class="ztree-toolbar-icon" aria-hidden="true">{{ tree.allNodesExpanded.value ? '⊟' : '⊞' }}</span>
+        All
       </button>
     </div>
 
