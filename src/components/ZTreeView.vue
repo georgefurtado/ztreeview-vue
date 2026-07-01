@@ -54,32 +54,59 @@ defineExpose(tree.api);
 </script>
 
 <template>
-  <ul
-    :id="tree.setting.value.treeId"
-    class="ztree ztree-vue"
-    role="tree"
-    :aria-multiselectable="tree.setting.value.view.selectedMulti"
-  >
-    <ZTreeNodeItem
-      v-for="node in tree.roots.value.filter((item) => !item.isHidden)"
-      :key="node.tId"
-      :node="node"
+  <div class="ztree-shell">
+    <div class="ztree-toolbar" role="toolbar" :aria-label="`${tree.setting.value.treeId} controls`">
+      <button
+        type="button"
+        class="ztree-toolbar-button"
+        data-testid="ztree-toggle-select-all"
+        :disabled="tree.roots.value.length === 0"
+        :aria-pressed="tree.allNodesSelected.value"
+        @click="tree.toggleSelectAll"
+      >
+        <span aria-hidden="true">{{ tree.allNodesSelected.value ? '×' : '✓' }}</span>
+        {{ tree.allNodesSelected.value ? 'Desselecionar todos' : 'Selecionar todos' }}
+      </button>
+      <button
+        type="button"
+        class="ztree-toolbar-button"
+        data-testid="ztree-toggle-expand-all"
+        :disabled="tree.roots.value.length === 0"
+        :aria-pressed="tree.allNodesExpanded.value"
+        @click="tree.toggleExpandAll"
+      >
+        <span aria-hidden="true">{{ tree.allNodesExpanded.value ? '-' : '+' }}</span>
+        {{ tree.allNodesExpanded.value ? 'Colapsar todos' : 'Expandir todos' }}
+      </button>
+    </div>
+
+    <ul
+      :id="tree.setting.value.treeId"
+      class="ztree ztree-vue"
+      role="tree"
+      :aria-multiselectable="tree.setting.value.view.selectedMulti"
     >
-      <template #switch="slotProps">
-        <slot name="switch" v-bind="slotProps" />
-      </template>
-      <template #icon="slotProps">
-        <slot name="icon" v-bind="slotProps" />
-      </template>
-      <template #checkbox="slotProps">
-        <slot name="checkbox" v-bind="slotProps" />
-      </template>
-      <template #node="slotProps">
-        <slot name="node" v-bind="slotProps" />
-      </template>
-      <template #actions="slotProps">
-        <slot name="actions" v-bind="slotProps" />
-      </template>
-    </ZTreeNodeItem>
-  </ul>
+      <ZTreeNodeItem
+        v-for="node in tree.roots.value.filter((item) => !item.isHidden)"
+        :key="node.tId"
+        :node="node"
+      >
+        <template #switch="slotProps">
+          <slot name="switch" v-bind="slotProps" />
+        </template>
+        <template #icon="slotProps">
+          <slot name="icon" v-bind="slotProps" />
+        </template>
+        <template #checkbox="slotProps">
+          <slot name="checkbox" v-bind="slotProps" />
+        </template>
+        <template #node="slotProps">
+          <slot name="node" v-bind="slotProps" />
+        </template>
+        <template #actions="slotProps">
+          <slot name="actions" v-bind="slotProps" />
+        </template>
+      </ZTreeNodeItem>
+    </ul>
+  </div>
 </template>

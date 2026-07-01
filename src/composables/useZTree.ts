@@ -103,6 +103,24 @@ export function useZTree(options: UseZTreeOptions = {}) {
     return selectedNodes.value;
   }
 
+  function getSelectableNodes(): ZTreeNode[] {
+    return flatten(roots.value, setting.value).filter((node) => !node.isHidden);
+  }
+
+  function getExpandableNodes(): ZTreeNode[] {
+    return flatten(roots.value, setting.value).filter((node) => node.isParent && !node.isHidden);
+  }
+
+  const allNodesSelected = computed(() => {
+    const nodes = getSelectableNodes();
+    return nodes.length > 0 && nodes.every((node) => selectedNodes.value.includes(node));
+  });
+
+  const allNodesExpanded = computed(() => {
+    const nodes = getExpandableNodes();
+    return nodes.length > 0 && nodes.every((node) => node.open);
+  });
+
   function getChangeCheckedNodes(): ZTreeNode[] {
     return flatten(roots.value, setting.value).filter((node) => node.checked !== node.checkedOld);
   }
@@ -113,9 +131,23 @@ export function useZTree(options: UseZTreeOptions = {}) {
     if (!isSilent) options.emit?.('update:selectedKeys', selectedNodes.value.map((selected) => getNodeKey(setting.value, selected)).filter(Boolean));
   }
 
+  function emitSelectedKeys(): void {
+    options.emit?.('update:selectedKeys', selectedNodes.value.map((selected) => getNodeKey(setting.value, selected)).filter(Boolean));
+  }
+
+  function selectAllNodes(isSilent = false): void {
+    selectedNodes.value = getSelectableNodes();
+    if (!isSilent) emitSelectedKeys();
+  }
+
   function cancelSelectedNode(node?: ZTreeNode): void {
     selectedNodes.value = node ? selectedNodes.value.filter((selected) => selected !== node) : [];
-    options.emit?.('update:selectedKeys', selectedNodes.value.map((selected) => getNodeKey(setting.value, selected)).filter(Boolean));
+    emitSelectedKeys();
+  }
+
+  function toggleSelectAll(): void {
+    if (allNodesSelected.value) cancelSelectedNode();
+    else selectAllNodes();
   }
 
   function setNodeAndChildrenChecked(node: ZTreeNode, checked: boolean): void {
@@ -216,6 +248,10 @@ export function useZTree(options: UseZTreeOptions = {}) {
       if (node.isParent) node.open = expandFlag;
     }
     return true;
+  }
+
+  function toggleExpandAll(): boolean | null {
+    return expandAll(!allNodesExpanded.value);
   }
 
   function addNodes(parentNode: ZTreeNode | null, index = -1, newNodes?: ZTreeNode[] | ZTreeNode, isSilent = false): ZTreeNode[] {
@@ -376,6 +412,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     refresh: rebuildIndexes,
     removeChildNodes,
     removeNode,
+    selectAllNodes,
     selectNode,
     setChkDisabled,
     setEditable: (nextEditable) => {
@@ -383,6 +420,8 @@ export function useZTree(options: UseZTreeOptions = {}) {
     },
     showNode,
     showNodes: (nodes) => nodes.forEach(showNode),
+    toggleExpandAll,
+    toggleSelectAll,
     transformToArray: (nodes) => flatten(nodes, setting.value),
     transformTozTreeNodes: (nodes) => transformSimpleToTree(setting.value, cloneNodes(nodes)),
     updateNode
@@ -390,6 +429,8 @@ export function useZTree(options: UseZTreeOptions = {}) {
 
   return {
     api,
+    allNodesExpanded,
+    allNodesSelected,
     editingNode,
     editable,
     getVisibleChildren,
@@ -401,6 +442,9 @@ export function useZTree(options: UseZTreeOptions = {}) {
     checkNode,
     expandNode,
     selectNode,
+    selectAllNodes,
+    toggleExpandAll,
+    toggleSelectAll,
     moveNode,
     editName,
     cancelEditName

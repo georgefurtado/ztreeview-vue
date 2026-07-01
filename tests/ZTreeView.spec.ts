@@ -127,4 +127,58 @@ describe('ZTreeView', () => {
     await switchButton.trigger('click');
     expect(wrapper.find('.ztree-switch').text()).toBe('-');
   });
+
+  it('selects and deselects all nodes from the toolbar', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: true,
+            children: [{ id: 2, name: 'Child' }]
+          }
+        ]
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+    const button = wrapper.find('[data-testid="ztree-toggle-select-all"]');
+
+    await button.trigger('click');
+    expect(instance.getSelectedNodes().map((node) => node.name)).toEqual(['Root', 'Child']);
+    expect(button.text()).toContain('Desselecionar todos');
+
+    await button.trigger('click');
+    expect(instance.getSelectedNodes()).toHaveLength(0);
+    expect(button.text()).toContain('Selecionar todos');
+  });
+
+  it('expands and collapses all parent nodes from the toolbar', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Root',
+            open: false,
+            children: [{ id: 2, name: 'Child' }]
+          }
+        ]
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+    const root = instance.getNodeByParam('id', 1);
+    const button = wrapper.find('[data-testid="ztree-toggle-expand-all"]');
+
+    expect(root?.open).toBe(false);
+    await button.trigger('click');
+    expect(root?.open).toBe(true);
+    expect(button.text()).toContain('Colapsar todos');
+
+    await button.trigger('click');
+    expect(root?.open).toBe(false);
+    expect(button.text()).toContain('Expandir todos');
+  });
 });

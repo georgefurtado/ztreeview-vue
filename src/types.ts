@@ -221,11 +221,14 @@ export interface ZTreeInstance {
   refresh: () => void;
   removeChildNodes: (parentNode: ZTreeNode) => ZTreeNode[];
   removeNode: (treeNode: ZTreeNode, callbackFlag?: boolean) => void;
+  selectAllNodes: (isSilent?: boolean) => void;
   selectNode: (treeNode: ZTreeNode, addFlag?: boolean, isSilent?: boolean) => void;
   setChkDisabled: (treeNode: ZTreeNode, disabled?: boolean, inheritParent?: boolean, inheritChildren?: boolean) => void;
   setEditable: (editable: boolean) => void;
   showNode: (treeNode: ZTreeNode) => void;
   showNodes: (treeNodes: ZTreeNode[]) => void;
+  toggleExpandAll: () => boolean | null;
+  toggleSelectAll: () => void;
   transformToArray: (treeNodes: ZTreeNode[] | ZTreeNode) => ZTreeNode[];
   transformTozTreeNodes: (simpleNodes: ZTreeNode[] | ZTreeNode) => ZTreeNode[];
   updateNode: (treeNode: ZTreeNode, checkTypeFlag?: boolean) => void;
