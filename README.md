@@ -10,13 +10,20 @@ This repository starts from the original jQuery zTree v3.5.48 API surface, but t
 npm install ztreeview-vue
 ```
 
+When installing from GitHub Packages, configure npm for the `@georgefurtado` scope:
+
+```bash
+npm config set @georgefurtado:registry https://npm.pkg.github.com
+npm install @georgefurtado/ztreeview-vue
+```
+
 ## Basic Usage
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ZTreeView, type ZTreeNode, type ZTreeSetting } from 'ztreeview-vue';
-import 'ztreeview-vue/style.css';
+import { ZTreeView, type ZTreeNode, type ZTreeSetting } from '@georgefurtado/ztreeview-vue';
+import '@georgefurtado/ztreeview-vue/style.css';
 
 const nodes = ref<ZTreeNode[]>([
   {
@@ -75,7 +82,7 @@ Use a component ref to access familiar zTree methods:
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ZTreeView, type ZTreeInstance } from 'ztreeview-vue';
+import { ZTreeView, type ZTreeInstance } from '@georgefurtado/ztreeview-vue';
 
 const tree = ref<ZTreeInstance>();
 
@@ -97,7 +104,7 @@ The package ships CSS variables and a Tailwind preset:
 
 ```ts
 // tailwind.config.ts
-import zTreePreset from 'ztreeview-vue/tailwind-preset';
+import zTreePreset from '@georgefurtado/ztreeview-vue/tailwind-preset';
 
 export default {
   presets: [zTreePreset],
@@ -120,5 +127,18 @@ npm run dev
 npm run test
 npm run build
 ```
+
+## Publishing to GitHub Packages
+
+This package is configured for GitHub Packages under the `@georgefurtado` scope.
+
+Local publish requires a GitHub token with package permissions:
+
+```bash
+npm login --scope=@georgefurtado --registry=https://npm.pkg.github.com
+npm publish
+```
+
+CI publishing is handled by `.github/workflows/publish.yml` on GitHub Release publication or manual workflow dispatch.
 
 The original `api/`, `demo/`, `js/` and `css/` folders are kept as migration references while the Vue-native implementation evolves.
