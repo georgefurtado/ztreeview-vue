@@ -49,6 +49,7 @@ const rowStyle = computed<StyleValue>(() => [
     paddingInlineStart: `calc(${props.node.level ?? 0} * var(--ztree-indent) + 4px)`
   }
 ]);
+const nodeTextStyle = computed<StyleValue>(() => props.node.color ? { color: props.node.color } : undefined);
 const nodeClasses = computed(() => {
   const configured = tree.setting.value.view.nodeClasses;
   const classes = typeof configured === 'function' ? configured(tree.setting.value.treeId, props.node) : configured;
@@ -216,6 +217,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         :href="nodeUrl"
         :target="node.target"
         :title="tree.setting.value.view.showTitle ? nodeTitle : undefined"
+        :style="nodeTextStyle"
         @click.stop="onClick"
       >
         <slot name="node" :node="node" :selected="isSelected" :checked="node.checked">
@@ -227,6 +229,7 @@ function drop(event: DragEvent, moveType: ZTreeMoveType): void {
         v-else
         class="ztree-node-name node_name"
         :title="tree.setting.value.view.showTitle ? nodeTitle : undefined"
+        :style="nodeTextStyle"
       >
         <slot name="node" :node="node" :selected="isSelected" :checked="node.checked">
           <span v-if="tree.setting.value.view.nameIsHTML" v-html="nodeName" />

@@ -15,6 +15,7 @@ export interface ZTreeNode {
   children?: ZTreeNode[];
   chkDisabled?: boolean;
   click?: ZTreeCallbackOn;
+  color?: string;
   halfCheck?: boolean;
   icon?: string;
   iconClose?: string;

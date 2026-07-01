@@ -107,6 +107,16 @@ describe('ZTreeView', () => {
     expect(radioWrapper.find('.ztree-check').classes()).toContain('radio');
   });
 
+  it('applies node color to the rendered item text', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root', color: '#dc2626' }]
+      }
+    });
+
+    expect(wrapper.find('.ztree-node-name').attributes('style')).toContain('color: rgb(220, 38, 38)');
+  });
+
   it('uses plus and minus symbols for collapsed and expanded parent nodes', async () => {
     const wrapper = mount(ZTreeView, {
       props: {
