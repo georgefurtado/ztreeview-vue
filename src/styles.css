@@ -96,7 +96,6 @@
 }
 
 .ztree-node.is-selected > .ztree-node-row {
-  background: var(--ztree-color-selected-bg);
   color: var(--ztree-color-selected-text);
 }
 
