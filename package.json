@@ -1,6 +1,6 @@
 {
   "name": "@georgefurtado/ztreeview-vue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vue 3 native port of zTree with TypeScript types and Tailwind-ready theming.",
   "type": "module",
   "main": "./dist/ztreeview-vue.cjs",
