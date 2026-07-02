@@ -96,11 +96,16 @@ export function normalizeTree(setting: RequiredZTreeSetting, nodes: ZTreeNode[])
     node.parentTId = parent?.tId ?? null;
     node.isFirstNode = index === 0;
     node.isLastNode = index === siblings.length - 1;
-    node.checked = Boolean(node[setting.data.key.checked ?? 'checked'] ?? node.checked);
+    const checkedKey = setting.data.key.checked ?? 'checked';
+    const rawChecked = node[checkedKey] ?? node.checked;
+    node.checked = rawChecked === undefined ? Boolean(setting.check.defaultChecked) : Boolean(rawChecked);
     node.checkedOld = node.checkedOld ?? node.checked;
     node.isHidden = Boolean(node[setting.data.key.isHidden ?? 'isHidden'] ?? node.isHidden);
     const children = getChildren(setting, node);
     node.isParent = Boolean(node[setting.data.key.isParent ?? 'isParent'] ?? node.isParent ?? children.length > 0);
+    node.open = node.open === undefined
+      ? (node.isParent ? Boolean(setting.view.defaultExpanded) : false)
+      : Boolean(node.open);
 
     indexes.cache.set(node.tId, node);
     indexes.parentByTid.set(node.tId, parent);

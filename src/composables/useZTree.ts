@@ -12,8 +12,10 @@ import {
   setChildren,
   transformSimpleToTree
 } from '../core/tree';
+import { clearCache as clearCacheEntry, useZTreeCache } from './useZTreeCache';
 import type {
   RequiredZTreeSetting,
+  ZTreeCachePayload,
   ZTreeInstance,
   ZTreeMoveType,
   ZTreeNode,
@@ -56,6 +58,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     roots.value = setting.value.data.simpleData.enable ? transformSimpleToTree(setting.value, cloned) : cloned;
     rebuildIndexes();
     applyExternalState();
+    cache.restore();
   }
 
   function applyExternalState(): void {
@@ -76,6 +79,49 @@ export function useZTree(options: UseZTreeOptions = {}) {
       repairAllCheckState();
     }
   }
+
+  function onCacheRestore(payload: ZTreeCachePayload): void {
+    const allNodes = flatten(roots.value, setting.value);
+    const hasExternalChecked = options.checkedKeys?.() !== undefined;
+    const hasExternalSelected = options.selectedKeys?.() !== undefined;
+
+    if (setting.value.check.enable && !hasExternalChecked) {
+      const keys = new Set(payload.checkedKeys);
+      for (const node of allNodes) {
+        if (node.chkDisabled || node.nocheck) continue;
+        const key = getNodeKey(setting.value, node);
+        node.checked = key !== undefined && keys.has(key);
+      }
+      repairAllCheckState();
+    }
+
+    const openKeys = new Set(payload.openKeys);
+    for (const node of allNodes) {
+      if (!node.isParent) continue;
+      const key = getNodeKey(setting.value, node);
+      node.open = key !== undefined && openKeys.has(key);
+    }
+
+    if (!hasExternalSelected) {
+      const keys = new Set(payload.selectedKeys);
+      selectedNodes.value = allNodes.filter((node) => {
+        const key = getNodeKey(setting.value, node);
+        return key !== undefined && keys.has(key);
+      });
+    }
+
+    if (setting.value.search.enable && payload.searchQuery) {
+      searchNodes(payload.searchQuery);
+    }
+  }
+
+  const cache = useZTreeCache({
+    setting,
+    roots,
+    selectedNodes,
+    searchQuery,
+    onRestore: onCacheRestore
+  });
 
   watch([() => options.nodes?.(), setting], ([nodes]) => setRootNodes(nodes), { immediate: true, deep: true });
   watch(() => options.checkedKeys?.(), applyExternalState, { deep: true });
@@ -162,14 +208,17 @@ export function useZTree(options: UseZTreeOptions = {}) {
     if (!setting.value.view.selectedMulti || !addFlag) selectedNodes.value = [];
     if (!selectedNodes.value.includes(node)) selectedNodes.value = [...selectedNodes.value, node];
     if (!isSilent) options.emit?.('update:selectedKeys', getNodeKeys(selectedNodes.value));
+    cache.persist();
   }
 
   function emitSelectedKeys(): void {
     options.emit?.('update:selectedKeys', getNodeKeys(selectedNodes.value));
+    cache.persist();
   }
 
   function emitCheckedKeys(): void {
     options.emit?.('update:checkedKeys', getNodeKeys(getCheckedNodes(true)));
+    cache.persist();
   }
 
   function syncSelectedFromChecked(isSilent = false): void {
@@ -299,6 +348,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     if (sonSign) {
       for (const child of getChildren(setting.value, node)) expandNode(child, expandFlag, true);
     }
+    cache.persist();
     return true;
   }
 
@@ -306,6 +356,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     for (const node of flatten(roots.value, setting.value)) {
       if (node.isParent) node.open = expandFlag;
     }
+    cache.persist();
     return true;
   }
 
@@ -478,6 +529,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     if (!setting.value.search.enable || !normalizedQuery) {
       searchMatches.value = [];
       restoreOpenState();
+      cache.persistDebounced();
       return [];
     }
 
@@ -485,6 +537,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     const matches = flatten(roots.value, setting.value).filter((node) => !node.isHidden && nodeMatchesQuery(node, normalizedQuery));
     searchMatches.value = Array.from(new Set(matches));
     expandSearchPaths(searchMatches.value);
+    cache.persistDebounced();
     return searchMatches.value;
   }
 
@@ -492,6 +545,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     searchQuery.value = '';
     searchMatches.value = [];
     restoreOpenState();
+    cache.persist();
   }
 
   const visibleRoots = computed(() => {
@@ -561,6 +615,7 @@ export function useZTree(options: UseZTreeOptions = {}) {
     cancelSelectedNode,
     checkAllNodes,
     checkNode,
+    clearCache: () => clearCacheEntry(setting.value.treeId),
     copyNode,
     editName,
     expandAll,

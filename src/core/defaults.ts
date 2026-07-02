@@ -7,6 +7,7 @@ const defaultSetting: RequiredZTreeSetting = {
     addHoverDom: () => undefined,
     autoCancelSelected: true,
     dblClickExpand: true,
+    defaultExpanded: false,
     expandSpeed: 0,
     fontCss: {},
     nameIsHTML: false,
@@ -62,6 +63,7 @@ const defaultSetting: RequiredZTreeSetting = {
       N: 'ps'
     },
     chkStyle: 'checkbox',
+    defaultChecked: false,
     enable: false,
     nocheckInherit: false,
     chkDisabledInherit: false,
@@ -100,6 +102,9 @@ const defaultSetting: RequiredZTreeSetting = {
     typeKey: 'type',
     types: []
   },
+  cache: {
+    enable: false
+  },
   callback: {}
 };
 
@@ -129,6 +134,7 @@ export function resolveSetting(input: ZTreeSetting = {}, treeId?: string): Requi
       drag: { ...defaultSetting.edit.drag, ...input.edit?.drag }
     },
     search: { ...defaultSetting.search, ...input.search },
+    cache: { ...defaultSetting.cache, ...input.cache },
     callback: { ...input.callback }
   };
 }

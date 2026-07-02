@@ -8,6 +8,8 @@ export { default as zTreeTailwindPreset } from './tailwind-preset';
 export type {
   RequiredZTreeSetting,
   ZTreeAsyncSetting,
+  ZTreeCachePayload,
+  ZTreeCacheSetting,
   ZTreeCallback,
   ZTreeCheckSetting,
   ZTreeCheckStatus,

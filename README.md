@@ -142,6 +142,57 @@ Useful options:
 
 The component instance also exposes `searchNodes(query)`, `clearSearch()` and `getSearchMatches()`.
 
+## Default Initial State
+
+Use `setting.check.defaultChecked` and `setting.view.defaultExpanded` to control the
+initial checked/expanded state for nodes that do not explicitly set `checked`/`open` in
+their raw data. Per-node explicit values always win over these tree-wide defaults.
+
+```ts
+const setting: ZTreeSetting = {
+  check: { enable: true, defaultChecked: true },
+  view: { defaultExpanded: true }
+};
+```
+
+- `check.defaultChecked` (default `false`): applied only to nodes with no `checked`
+  property in the source data. A node with `checked: false` explicitly stays unchecked.
+- `view.defaultExpanded` (default `false`): applied only to parent nodes with no `open`
+  property in the source data. Leaf nodes are unaffected.
+- A parent's `checked` state is still derived bottom-up from its children (existing
+  zTree behavior), so `defaultChecked` mainly affects leaf nodes and subtrees whose
+  children all resolve to the same default.
+
+## Cache (localStorage)
+
+Enable `setting.cache.enable` to persist checked, selected and expanded node keys plus
+the last search query to `localStorage`, keyed by `treeId`. On the next mount with the
+same `treeId`, the cached state is restored automatically — unless you also bind
+`:checked-keys` / `:selected-keys`, in which case those explicit props always win and
+the cache only fills in whatever they don't cover.
+
+```ts
+const setting: ZTreeSetting = {
+  treeId: 'my-project-tree',
+  cache: { enable: true },
+  check: { enable: true },
+  search: { enable: true }
+};
+```
+
+Requirements and caveats:
+
+- Requires a stable node identity: set `data.simpleData.idKey` (default `id`) or ensure
+  every node has a `key`/`id`. Nodes without a stable id fall back to the auto-generated
+  `tId`, which is regenerated on every load and will not match across page reloads.
+- Each `ZTreeView` instance should use a unique `treeId` — the cache key is derived as
+  `` `ztreeview:${treeId}` ``, so instances sharing a `treeId` share (and can overwrite)
+  cached state, same as the existing DOM id uniqueness requirement.
+- Cache writes are best-effort: quota errors, private-browsing restrictions and SSR
+  environments are handled silently (the cache is simply skipped).
+- Call the exposed `clearCache()` instance method to explicitly wipe a tree's cached
+  state, e.g. from a "reset view" action.
+
 ## zTree-Compatible Instance Methods
 
 Use a component ref to access familiar zTree methods:
@@ -163,7 +214,7 @@ function expandEverything() {
 </template>
 ```
 
-Implemented methods include `addNodes`, `removeNode`, `updateNode`, `expandNode`, `expandAll`, `selectNode`, `cancelSelectedNode`, `checkNode`, `checkAllNodes`, `getNodes`, `getSelectedNodes`, `getCheckedNodes`, `getNodeByParam`, `getNodesByFilter`, `searchNodes`, `clearSearch`, `getSearchMatches`, `transformTozTreeNodes`, `transformToArray`, `hideNode`, `showNode`, `moveNode`, `copyNode`, `editName`, `cancelEditName` and `reAsyncChildNodes`.
+Implemented methods include `addNodes`, `removeNode`, `updateNode`, `expandNode`, `expandAll`, `selectNode`, `cancelSelectedNode`, `checkNode`, `checkAllNodes`, `getNodes`, `getSelectedNodes`, `getCheckedNodes`, `getNodeByParam`, `getNodesByFilter`, `searchNodes`, `clearSearch`, `getSearchMatches`, `clearCache`, `transformTozTreeNodes`, `transformToArray`, `hideNode`, `showNode`, `moveNode`, `copyNode`, `editName`, `cancelEditName` and `reAsyncChildNodes`.
 
 ## Tailwind Theme
 

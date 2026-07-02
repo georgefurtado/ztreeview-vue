@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import ZTreeView from '../src/components/ZTreeView.vue';
 import type { ZTreeNode, ZTreeInstance } from '../src/types';
 
@@ -343,5 +343,177 @@ describe('ZTreeView', () => {
 
     expect(wrapper.findAll('.ztree-node-name').map((item) => item.text())).toEqual(['Relatorios', 'Usuarios']);
     expect(instance.getNodeByParam('id', 1)?.open).toBe(false);
+  });
+
+  it('applies check.defaultChecked and view.defaultExpanded to nodes without explicit values', () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [{ id: 1, name: 'Root', children: [{ id: 2, name: 'Child' }] }],
+        setting: { check: { enable: true, defaultChecked: true }, view: { defaultExpanded: true } }
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+    expect(instance.getCheckedNodes()).toHaveLength(2);
+    expect(wrapper.findAll('.ztree-node-row')).toHaveLength(2);
+  });
+});
+
+describe('ZTreeView cache', () => {
+  beforeEach(() => localStorage.clear());
+
+  const nodes = (): ZTreeNode[] => [
+    {
+      id: 1,
+      name: 'Root',
+      type: 'folder',
+      children: [{ id: 2, name: 'Child' }]
+    }
+  ];
+
+  it('persists checked, selected, open and search state and restores it on remount', async () => {
+    const first = mount(ZTreeView, {
+      props: {
+        nodes: nodes(),
+        treeId: 'cache-tree',
+        setting: { cache: { enable: true }, check: { enable: true }, search: { enable: true, keys: ['name'] } }
+      }
+    });
+    const firstInstance = first.vm as unknown as ZTreeInstance;
+    const child = firstInstance.getNodeByParam('id', 2)!;
+
+    firstInstance.checkNode(child, true);
+    firstInstance.expandNode(firstInstance.getNodeByParam('id', 1)!, true);
+    firstInstance.searchNodes('child');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    first.unmount();
+
+    const second = mount(ZTreeView, {
+      props: {
+        nodes: nodes(),
+        treeId: 'cache-tree',
+        setting: { cache: { enable: true }, check: { enable: true }, search: { enable: true, keys: ['name'] } }
+      }
+    });
+    const secondInstance = second.vm as unknown as ZTreeInstance;
+
+    expect(secondInstance.getCheckedNodes().map((node) => node.name).sort()).toEqual(['Child', 'Root']);
+    expect(secondInstance.getSelectedNodes().map((node) => node.name).sort()).toEqual(['Child', 'Root']);
+    expect(secondInstance.getNodeByParam('id', 1)?.open).toBe(true);
+  });
+
+  const flatNodes = (): ZTreeNode[] => [
+    { id: 1, name: 'One' },
+    { id: 2, name: 'Two' }
+  ];
+
+  it('lets an explicit checkedKeys prop win over the cache', () => {
+    localStorage.setItem('ztreeview:cache-tree-2', JSON.stringify({
+      version: 1,
+      checkedKeys: [1],
+      selectedKeys: [],
+      openKeys: [],
+      searchQuery: ''
+    }));
+
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: flatNodes(),
+        treeId: 'cache-tree-2',
+        checkedKeys: [2],
+        setting: { cache: { enable: true }, check: { enable: true } }
+      }
+    });
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    expect(instance.getCheckedNodes().map((node) => node.id)).toEqual([2]);
+  });
+
+  it('lets an explicit selectedKeys prop win over the cache', () => {
+    localStorage.setItem('ztreeview:cache-tree-3', JSON.stringify({
+      version: 1,
+      checkedKeys: [],
+      selectedKeys: [1],
+      openKeys: [],
+      searchQuery: ''
+    }));
+
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: flatNodes(),
+        treeId: 'cache-tree-3',
+        selectedKeys: [2],
+        setting: { cache: { enable: true } }
+      }
+    });
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    expect(instance.getSelectedNodes().map((node) => node.id)).toEqual([2]);
+  });
+
+  it('never touches localStorage when cache.enable is false (default)', () => {
+    const wrapper = mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-4', setting: { check: { enable: true } } }
+    });
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    instance.checkNode(instance.getNodeByParam('id', 2)!, true);
+
+    expect(localStorage.getItem('ztreeview:cache-tree-4')).toBeNull();
+  });
+
+  it('ignores a corrupted cache entry without throwing', () => {
+    localStorage.setItem('ztreeview:cache-tree-5', '{not valid json');
+
+    expect(() => mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-5', setting: { cache: { enable: true } } }
+    })).not.toThrow();
+  });
+
+  it('clearCache() removes the stored entry', () => {
+    const wrapper = mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-6', setting: { cache: { enable: true }, check: { enable: true } } }
+    });
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    instance.checkNode(instance.getNodeByParam('id', 2)!, true);
+    expect(localStorage.getItem('ztreeview:cache-tree-6')).not.toBeNull();
+
+    instance.clearCache();
+    expect(localStorage.getItem('ztreeview:cache-tree-6')).toBeNull();
+  });
+
+  it('keeps caches for different treeIds independent', () => {
+    const wrapperA = mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-a', setting: { cache: { enable: true }, check: { enable: true } } }
+    });
+    const wrapperB = mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-b', setting: { cache: { enable: true }, check: { enable: true } } }
+    });
+    const instanceA = wrapperA.vm as unknown as ZTreeInstance;
+    const instanceB = wrapperB.vm as unknown as ZTreeInstance;
+
+    instanceA.checkNode(instanceA.getNodeByParam('id', 2)!, true);
+
+    expect(localStorage.getItem('ztreeview:cache-tree-a')).not.toBeNull();
+    expect(localStorage.getItem('ztreeview:cache-tree-b')).toBeNull();
+    expect(instanceB.getCheckedNodes()).toHaveLength(0);
+  });
+
+  it('treats a stored payload with a mismatched version as absent', () => {
+    localStorage.setItem('ztreeview:cache-tree-7', JSON.stringify({
+      version: 99,
+      checkedKeys: [1],
+      selectedKeys: [],
+      openKeys: [],
+      searchQuery: ''
+    }));
+
+    const wrapper = mount(ZTreeView, {
+      props: { nodes: nodes(), treeId: 'cache-tree-7', setting: { cache: { enable: true }, check: { enable: true } } }
+    });
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    expect(instance.getCheckedNodes()).toHaveLength(0);
   });
 });

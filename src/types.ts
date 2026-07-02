@@ -109,6 +109,7 @@ export interface ZTreeCheckSetting {
   autoCheckTrigger?: boolean;
   chkboxType?: { Y?: string; N?: string };
   chkStyle?: ZTreeCheckStyle;
+  defaultChecked?: boolean;
   enable?: boolean;
   nocheckInherit?: boolean;
   chkDisabledInherit?: boolean;
@@ -177,6 +178,18 @@ export interface ZTreeSearchSetting {
   types?: string[];
 }
 
+export interface ZTreeCacheSetting {
+  enable?: boolean;
+}
+
+export interface ZTreeCachePayload {
+  version: 1;
+  checkedKeys: ZTreeNodeKey[];
+  selectedKeys: ZTreeNodeKey[];
+  openKeys: ZTreeNodeKey[];
+  searchQuery: string;
+}
+
 export interface ZTreeNodeClasses {
   add?: string[];
   remove?: string[];
@@ -187,6 +200,7 @@ export interface ZTreeViewSetting {
   addHoverDom?: (treeId: string, treeNode: ZTreeNode) => void;
   autoCancelSelected?: boolean;
   dblClickExpand?: boolean | ((treeId: string, treeNode: ZTreeNode) => boolean);
+  defaultExpanded?: boolean;
   expandSpeed?: string | number;
   fontCss?: Record<string, string> | ((treeId: string, treeNode: ZTreeNode) => Record<string, string>);
   nameIsHTML?: boolean;
@@ -202,6 +216,7 @@ export interface ZTreeViewSetting {
 export interface ZTreeSetting {
   async?: ZTreeAsyncSetting;
   callback?: ZTreeCallback;
+  cache?: ZTreeCacheSetting;
   check?: ZTreeCheckSetting;
   data?: ZTreeDataSetting;
   edit?: ZTreeEditSetting;
@@ -217,6 +232,7 @@ export interface ZTreeInstance {
   cancelSelectedNode: (treeNode?: ZTreeNode) => void;
   checkAllNodes: (checked: boolean, isSilent?: boolean) => void;
   checkNode: (treeNode: ZTreeNode, checked?: boolean, checkTypeFlag?: boolean, callbackFlag?: boolean) => void;
+  clearCache: () => void;
   copyNode: (targetNode: ZTreeNode | null, treeNode: ZTreeNode, moveType: ZTreeMoveType, isSilent?: boolean) => ZTreeNode | null;
   editName: (treeNode: ZTreeNode) => void;
   expandAll: (expandFlag: boolean) => boolean | null;
@@ -254,10 +270,11 @@ export interface ZTreeInstance {
   updateNode: (treeNode: ZTreeNode, checkTypeFlag?: boolean) => void;
 }
 
-export interface RequiredZTreeSetting extends Omit<ZTreeSetting, 'async' | 'callback' | 'check' | 'data' | 'edit' | 'search' | 'view' | 'treeId'> {
+export interface RequiredZTreeSetting extends Omit<ZTreeSetting, 'async' | 'callback' | 'cache' | 'check' | 'data' | 'edit' | 'search' | 'view' | 'treeId'> {
   treeId: string;
   async: Required<ZTreeAsyncSetting>;
   callback: ZTreeCallback;
+  cache: Required<ZTreeCacheSetting>;
   check: Required<ZTreeCheckSetting> & {
     chkboxType: Required<NonNullable<ZTreeCheckSetting['chkboxType']>>;
   };

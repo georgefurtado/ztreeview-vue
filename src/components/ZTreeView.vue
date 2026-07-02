@@ -16,9 +16,7 @@ const props = withDefaults(defineProps<{
   nodes: () => [],
   setting: () => ({}),
   treeId: 'ztree',
-  modelValue: null,
-  checkedKeys: () => [],
-  selectedKeys: () => []
+  modelValue: null
 });
 
 const emit = defineEmits<{
