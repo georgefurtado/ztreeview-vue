@@ -270,4 +270,78 @@ describe('ZTreeView', () => {
     expect(button.text()).toContain('⊞ All');
     expect(button.attributes('aria-label')).toBe('Expandir todos');
   });
+
+  it('filters search results by configured node types without duplicates', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Financeiro',
+            type: 'folder',
+            open: true,
+            children: [
+              { id: 11, name: 'Financeiro contrato', type: 'document' },
+              { id: 12, name: 'Financeiro painel', type: 'dashboard' }
+            ]
+          },
+          { id: 2, name: 'Operacional contrato', type: 'document' }
+        ],
+        setting: {
+          search: {
+            enable: true,
+            keys: ['name'],
+            mode: 'contains',
+            types: ['document']
+          }
+        }
+      }
+    });
+
+    await wrapper.find('[data-testid="ztree-search-input"]').setValue('contrato');
+
+    const renderedNames = wrapper.findAll('.ztree-node-name').map((item) => item.text());
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+
+    expect(renderedNames).toEqual(['Financeiro contrato', 'Operacional contrato']);
+    expect(new Set(renderedNames).size).toBe(renderedNames.length);
+    expect(instance.getSearchMatches().map((node) => node.id)).toEqual([11, 2]);
+  });
+
+  it('supports fuzzy search and restores the tree when cleared', async () => {
+    const wrapper = mount(ZTreeView, {
+      props: {
+        nodes: [
+          {
+            id: 1,
+            name: 'Relatorios',
+            open: false,
+            children: [{ id: 11, name: 'Resumo mensal', type: 'document' }]
+          },
+          { id: 2, name: 'Usuarios', type: 'section' }
+        ],
+        setting: {
+          search: {
+            enable: true,
+            keys: ['name'],
+            types: ['document']
+          }
+        }
+      }
+    });
+
+    const instance = wrapper.vm as unknown as ZTreeInstance;
+    const matches = instance.searchNodes('rsm msl');
+    await wrapper.vm.$nextTick();
+
+    expect(matches.map((node) => node.name)).toEqual(['Resumo mensal']);
+    expect(wrapper.findAll('.ztree-node-name').map((item) => item.text())).toEqual(['Resumo mensal']);
+    expect(instance.getNodeByParam('id', 1)?.open).toBe(true);
+
+    instance.clearSearch();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.findAll('.ztree-node-name').map((item) => item.text())).toEqual(['Relatorios', 'Usuarios']);
+    expect(instance.getNodeByParam('id', 1)?.open).toBe(false);
+  });
 });

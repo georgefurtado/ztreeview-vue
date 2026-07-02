@@ -6,23 +6,36 @@ import type { ZTreeNode, ZTreeSetting } from '../types';
 const nodes = ref<ZTreeNode[]>([
   {
     id: 1,
-    name: 'Root',
+    name: 'Financeiro',
+    type: 'folder',
     open: true,
     children: [
-      { id: 11, name: 'Child checked', checked: true },
-      { id: 12, name: 'Child editable' }
+      { id: 11, name: 'Contrato mensal', type: 'document', checked: true },
+      { id: 12, name: 'Painel de recebimentos', type: 'dashboard' },
+      { id: 13, name: 'Configuracao financeira', type: 'setting' }
     ]
   },
   {
     id: 2,
-    name: 'Async-ready branch',
-    isParent: true
+    name: 'Operacional',
+    type: 'folder',
+    open: true,
+    children: [
+      { id: 21, name: 'Contrato de campo', type: 'document' },
+      { id: 22, name: 'Indicadores de equipes', type: 'dashboard' },
+      { id: 23, name: 'Usuarios internos', type: 'user' }
+    ]
   }
 ]);
 
 const setting: ZTreeSetting = {
   check: { enable: true },
   edit: { enable: true },
+  search: {
+    enable: true,
+    keys: ['name'],
+    types: ['document', 'dashboard']
+  },
   view: { selectedMulti: true }
 };
 

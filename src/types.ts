@@ -5,6 +5,8 @@ export type ZTreeDataType = 'text' | 'json' | 'jsonp' | 'html' | 'xml' | 'script
 export type ZTreeApplicationType = 'application/x-www-form-urlencoded' | 'application/json';
 export type ZTreeMoveType = 'prev' | 'next' | 'inner';
 export type ZTreeCheckStyle = 'checkbox' | 'radio';
+export type ZTreeSearchMode = 'contains' | 'fuzzy';
+export type ZTreeSearchResultMode = 'matches' | 'path';
 
 export interface ZTreeNode {
   id?: ZTreeNodeKey;
@@ -162,6 +164,19 @@ export interface ZTreeEditSetting {
   showRenameBtn?: boolean | ((treeId: string, treeNode: ZTreeNode) => boolean);
 }
 
+export interface ZTreeSearchSetting {
+  autoExpand?: boolean;
+  enable?: boolean;
+  keys?: string[];
+  minScore?: number;
+  mode?: ZTreeSearchMode;
+  placeholder?: string;
+  resultMode?: ZTreeSearchResultMode;
+  showInput?: boolean;
+  typeKey?: string;
+  types?: string[];
+}
+
 export interface ZTreeNodeClasses {
   add?: string[];
   remove?: string[];
@@ -190,6 +205,7 @@ export interface ZTreeSetting {
   check?: ZTreeCheckSetting;
   data?: ZTreeDataSetting;
   edit?: ZTreeEditSetting;
+  search?: ZTreeSearchSetting;
   treeId?: string;
   view?: ZTreeViewSetting;
 }
@@ -222,6 +238,9 @@ export interface ZTreeInstance {
   refresh: () => void;
   removeChildNodes: (parentNode: ZTreeNode) => ZTreeNode[];
   removeNode: (treeNode: ZTreeNode, callbackFlag?: boolean) => void;
+  clearSearch: () => void;
+  getSearchMatches: () => ZTreeNode[];
+  searchNodes: (query: string) => ZTreeNode[];
   selectAllNodes: (isSilent?: boolean) => void;
   selectNode: (treeNode: ZTreeNode, addFlag?: boolean, isSilent?: boolean) => void;
   setChkDisabled: (treeNode: ZTreeNode, disabled?: boolean, inheritParent?: boolean, inheritChildren?: boolean) => void;
@@ -235,7 +254,7 @@ export interface ZTreeInstance {
   updateNode: (treeNode: ZTreeNode, checkTypeFlag?: boolean) => void;
 }
 
-export interface RequiredZTreeSetting extends Omit<ZTreeSetting, 'async' | 'callback' | 'check' | 'data' | 'edit' | 'view' | 'treeId'> {
+export interface RequiredZTreeSetting extends Omit<ZTreeSetting, 'async' | 'callback' | 'check' | 'data' | 'edit' | 'search' | 'view' | 'treeId'> {
   treeId: string;
   async: Required<ZTreeAsyncSetting>;
   callback: ZTreeCallback;
@@ -251,6 +270,7 @@ export interface RequiredZTreeSetting extends Omit<ZTreeSetting, 'async' | 'call
   edit: Required<ZTreeEditSetting> & {
     drag: Required<NonNullable<ZTreeEditSetting['drag']>>;
   };
+  search: Required<ZTreeSearchSetting>;
   view: Required<ZTreeViewSetting>;
 };
 

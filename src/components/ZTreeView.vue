@@ -56,11 +56,36 @@ defineExpose(tree.api);
 <template>
   <div class="ztree-shell">
     <div class="ztree-toolbar" role="toolbar" :aria-label="`${tree.setting.value.treeId} controls`">
+      <label
+        v-if="tree.setting.value.search.enable && tree.setting.value.search.showInput"
+        class="ztree-search"
+      >
+        <span class="ztree-search-icon" aria-hidden="true">⌕</span>
+        <input
+          class="ztree-search-input"
+          data-testid="ztree-search-input"
+          type="search"
+          :value="tree.searchQuery.value"
+          :placeholder="tree.setting.value.search.placeholder"
+          :aria-label="tree.setting.value.search.placeholder"
+          @input="tree.searchQuery.value = ($event.target as HTMLInputElement).value"
+        />
+        <button
+          v-if="tree.searchQuery.value"
+          type="button"
+          class="ztree-search-clear"
+          data-testid="ztree-search-clear"
+          aria-label="Limpar pesquisa"
+          @click="tree.api.clearSearch"
+        >
+          ×
+        </button>
+      </label>
       <button
         type="button"
         class="ztree-toolbar-button"
         data-testid="ztree-toggle-select-all"
-        :disabled="tree.roots.value.length === 0"
+        :disabled="tree.visibleRoots.value.length === 0"
         :aria-pressed="tree.allNodesSelected.value"
         :aria-label="tree.allNodesSelected.value ? 'Desselecionar todos' : 'Selecionar todos'"
         @click="tree.toggleSelectAll"
@@ -72,7 +97,7 @@ defineExpose(tree.api);
         type="button"
         class="ztree-toolbar-button"
         data-testid="ztree-toggle-expand-all"
-        :disabled="tree.roots.value.length === 0"
+        :disabled="tree.visibleRoots.value.length === 0"
         :aria-pressed="tree.allNodesExpanded.value"
         :aria-label="tree.allNodesExpanded.value ? 'Colapsar todos' : 'Expandir todos'"
         @click="tree.toggleExpandAll"
@@ -89,7 +114,7 @@ defineExpose(tree.api);
       :aria-multiselectable="tree.setting.value.view.selectedMulti"
     >
       <ZTreeNodeItem
-        v-for="node in tree.roots.value.filter((item) => !item.isHidden)"
+        v-for="node in tree.visibleRoots.value"
         :key="node.tId"
         :node="node"
       >

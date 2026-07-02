@@ -88,6 +88,18 @@ const defaultSetting: RequiredZTreeSetting = {
     showRemoveBtn: true,
     showRenameBtn: true
   },
+  search: {
+    autoExpand: true,
+    enable: false,
+    keys: ['name', 'title'],
+    minScore: 0.6,
+    mode: 'fuzzy',
+    placeholder: 'Pesquisar...',
+    resultMode: 'matches',
+    showInput: true,
+    typeKey: 'type',
+    types: []
+  },
   callback: {}
 };
 
@@ -116,6 +128,7 @@ export function resolveSetting(input: ZTreeSetting = {}, treeId?: string): Requi
       ...input.edit,
       drag: { ...defaultSetting.edit.drag, ...input.edit?.drag }
     },
+    search: { ...defaultSetting.search, ...input.search },
     callback: { ...input.callback }
   };
 }

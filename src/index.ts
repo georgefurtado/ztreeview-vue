@@ -18,6 +18,9 @@ export type {
   ZTreeNode,
   ZTreeNodeClasses,
   ZTreeNodeKey,
+  ZTreeSearchMode,
+  ZTreeSearchResultMode,
+  ZTreeSearchSetting,
   ZTreeSetting,
   ZTreeViewProps,
   ZTreeViewSetting

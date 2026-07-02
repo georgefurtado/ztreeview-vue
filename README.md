@@ -110,6 +110,38 @@ const nodes: ZTreeNode[] = [
 
 The component does not bundle an icon font and does not force `font-family` on `ztree-node-text-icon`. Load Font Awesome, Bootstrap Icons, Material Symbols or your own icon font/CSS in the parent application.
 
+## Search
+
+Enable `setting.search` to render a search input in the toolbar. The search hides non-matching items from the rendered result, keeps matches unique, and can restrict the search to configured node types.
+
+```ts
+const nodes: ZTreeNode[] = [
+  { id: 1, name: 'Financeiro', type: 'folder' },
+  { id: 2, name: 'Contrato mensal', type: 'document' },
+  { id: 3, name: 'Painel financeiro', type: 'dashboard' }
+];
+
+const setting: ZTreeSetting = {
+  search: {
+    enable: true,
+    keys: ['name', 'title'],
+    mode: 'fuzzy',
+    typeKey: 'type',
+    types: ['document', 'dashboard']
+  }
+};
+```
+
+Useful options:
+
+- `types`: only nodes whose type is in this list enter the search. Leave empty to search all types.
+- `typeKey`: node property used as the type source. Defaults to `type`.
+- `keys`: text properties searched on each node. Defaults to `name` and `title`.
+- `mode`: `fuzzy` or `contains`.
+- `resultMode`: `matches` shows only matched nodes; `path` also shows ancestors so the tree path remains visible.
+
+The component instance also exposes `searchNodes(query)`, `clearSearch()` and `getSearchMatches()`.
+
 ## zTree-Compatible Instance Methods
 
 Use a component ref to access familiar zTree methods:
@@ -131,7 +163,7 @@ function expandEverything() {
 </template>
 ```
 
-Implemented methods include `addNodes`, `removeNode`, `updateNode`, `expandNode`, `expandAll`, `selectNode`, `cancelSelectedNode`, `checkNode`, `checkAllNodes`, `getNodes`, `getSelectedNodes`, `getCheckedNodes`, `getNodeByParam`, `getNodesByFilter`, `transformTozTreeNodes`, `transformToArray`, `hideNode`, `showNode`, `moveNode`, `copyNode`, `editName`, `cancelEditName` and `reAsyncChildNodes`.
+Implemented methods include `addNodes`, `removeNode`, `updateNode`, `expandNode`, `expandAll`, `selectNode`, `cancelSelectedNode`, `checkNode`, `checkAllNodes`, `getNodes`, `getSelectedNodes`, `getCheckedNodes`, `getNodeByParam`, `getNodesByFilter`, `searchNodes`, `clearSearch`, `getSearchMatches`, `transformTozTreeNodes`, `transformToArray`, `hideNode`, `showNode`, `moveNode`, `copyNode`, `editName`, `cancelEditName` and `reAsyncChildNodes`.
 
 ## Tailwind Theme
 

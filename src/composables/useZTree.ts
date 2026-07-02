@@ -35,6 +35,9 @@ export function useZTree(options: UseZTreeOptions = {}) {
   const roots = ref<ZTreeNode[]>([]);
   const selectedNodes = shallowRef<ZTreeNode[]>([]);
   const editingNode = shallowRef<ZTreeNode | null>(null);
+  const searchQuery = ref('');
+  const searchMatches = shallowRef<ZTreeNode[]>([]);
+  const openStateBeforeSearch = shallowRef<Map<string, boolean> | null>(null);
   const editable = ref(Boolean(setting.value.edit.enable));
   const indexes = reactive({
     cache: new Map<string, ZTreeNode>(),
@@ -91,8 +94,30 @@ export function useZTree(options: UseZTreeOptions = {}) {
     return result !== false;
   }
 
+  const searchActive = computed(() => setting.value.search.enable && searchQuery.value.trim().length > 0);
+  const searchMatchSet = computed(() => new Set(searchMatches.value));
+
+  function hasMatchedDescendant(node: ZTreeNode): boolean {
+    return getChildren(setting.value, node).some((child) => searchMatchSet.value.has(child) || hasMatchedDescendant(child));
+  }
+
+  function hasMatchedAncestor(node: ZTreeNode): boolean {
+    let current = node.getParentNode?.() ?? null;
+    while (current) {
+      if (searchMatchSet.value.has(current)) return true;
+      current = current.getParentNode?.() ?? null;
+    }
+    return false;
+  }
+
+  function isVisibleBySearch(node: ZTreeNode): boolean {
+    if (!searchActive.value) return true;
+    if (setting.value.search.resultMode === 'path') return searchMatchSet.value.has(node) || hasMatchedDescendant(node);
+    return searchMatchSet.value.has(node);
+  }
+
   function getVisibleChildren(node: ZTreeNode): ZTreeNode[] {
-    return getChildren(setting.value, node).filter((child) => !child.isHidden);
+    return getChildren(setting.value, node).filter((child) => !child.isHidden && isVisibleBySearch(child));
   }
 
   function getCheckedNodes(checked = true): ZTreeNode[] {
@@ -108,15 +133,15 @@ export function useZTree(options: UseZTreeOptions = {}) {
   }
 
   function getSelectableNodes(): ZTreeNode[] {
-    return flatten(roots.value, setting.value).filter((node) => !node.isHidden);
+    return flatten(roots.value, setting.value).filter((node) => !node.isHidden && isVisibleBySearch(node));
   }
 
   function getCheckableNodes(): ZTreeNode[] {
-    return flatten(roots.value, setting.value).filter((node) => !node.isHidden && !node.nocheck && !node.chkDisabled);
+    return flatten(roots.value, setting.value).filter((node) => !node.isHidden && isVisibleBySearch(node) && !node.nocheck && !node.chkDisabled);
   }
 
   function getExpandableNodes(): ZTreeNode[] {
-    return flatten(roots.value, setting.value).filter((node) => node.isParent && !node.isHidden);
+    return flatten(roots.value, setting.value).filter((node) => node.isParent && !node.isHidden && isVisibleBySearch(node));
   }
 
   const allNodesSelected = computed(() => {
@@ -368,6 +393,120 @@ export function useZTree(options: UseZTreeOptions = {}) {
     repairAllCheckState();
   }
 
+  function normalizeSearchText(value: unknown): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase();
+  }
+
+  function fuzzyScore(text: string, query: string): number {
+    if (!query) return 1;
+    if (!text) return 0;
+    if (text.includes(query)) return 1;
+
+    let queryIndex = 0;
+    let firstMatch = -1;
+    let lastMatch = -1;
+
+    for (let textIndex = 0; textIndex < text.length && queryIndex < query.length; textIndex += 1) {
+      if (text[textIndex] !== query[queryIndex]) continue;
+      if (firstMatch < 0) firstMatch = textIndex;
+      lastMatch = textIndex;
+      queryIndex += 1;
+    }
+
+    if (queryIndex < query.length) return 0;
+    const span = Math.max(1, lastMatch - firstMatch + 1);
+    const compactness = query.length / span;
+    const coverage = query.length / text.length;
+    return 0.25 + compactness * 0.6 + coverage * 0.15;
+  }
+
+  function nodeMatchesAllowedType(node: ZTreeNode): boolean {
+    const types = setting.value.search.types;
+    if (!types.length) return true;
+    const rawType = node[setting.value.search.typeKey];
+    const nodeTypes = Array.isArray(rawType) ? rawType : [rawType];
+    return nodeTypes.some((type) => types.includes(String(type)));
+  }
+
+  function nodeMatchesQuery(node: ZTreeNode, query: string): boolean {
+    if (!nodeMatchesAllowedType(node)) return false;
+    const keys = setting.value.search.keys.length ? setting.value.search.keys : ['name'];
+    const normalizedQuery = normalizeSearchText(query);
+
+    return keys.some((key) => {
+      const text = normalizeSearchText(node[key]);
+      if (setting.value.search.mode === 'contains') return text.includes(normalizedQuery);
+      return fuzzyScore(text, normalizedQuery) >= setting.value.search.minScore;
+    });
+  }
+
+  function rememberOpenState(): void {
+    if (openStateBeforeSearch.value) return;
+    openStateBeforeSearch.value = new Map(
+      flatten(roots.value, setting.value)
+        .filter((node) => node.tId)
+        .map((node) => [node.tId as string, Boolean(node.open)])
+    );
+  }
+
+  function restoreOpenState(): void {
+    const previous = openStateBeforeSearch.value;
+    if (!previous) return;
+    for (const node of flatten(roots.value, setting.value)) {
+      if (node.tId && previous.has(node.tId)) node.open = previous.get(node.tId);
+    }
+    openStateBeforeSearch.value = null;
+  }
+
+  function expandSearchPaths(matches: ZTreeNode[]): void {
+    if (!setting.value.search.autoExpand) return;
+    for (const node of matches) {
+      let parent = node.getParentNode?.() ?? null;
+      while (parent) {
+        parent.open = true;
+        parent = parent.getParentNode?.() ?? null;
+      }
+    }
+  }
+
+  function searchNodes(query: string): ZTreeNode[] {
+    searchQuery.value = query;
+    const normalizedQuery = query.trim();
+    if (!setting.value.search.enable || !normalizedQuery) {
+      searchMatches.value = [];
+      restoreOpenState();
+      return [];
+    }
+
+    rememberOpenState();
+    const matches = flatten(roots.value, setting.value).filter((node) => !node.isHidden && nodeMatchesQuery(node, normalizedQuery));
+    searchMatches.value = Array.from(new Set(matches));
+    expandSearchPaths(searchMatches.value);
+    return searchMatches.value;
+  }
+
+  function clearSearch(): void {
+    searchQuery.value = '';
+    searchMatches.value = [];
+    restoreOpenState();
+  }
+
+  const visibleRoots = computed(() => {
+    if (!searchActive.value) return roots.value.filter((node) => !node.isHidden);
+    if (setting.value.search.resultMode === 'path') {
+      return roots.value.filter((node) => !node.isHidden && isVisibleBySearch(node));
+    }
+    return searchMatches.value.filter((node) => !node.isHidden && !hasMatchedAncestor(node));
+  });
+
+  watch(searchQuery, (query) => {
+    if (query.trim()) searchNodes(query);
+    else clearSearch();
+  });
+
   async function reAsyncChildNodes(parentNode: ZTreeNode | null, reloadType = 'refresh', isSilent = false, callback?: () => void): Promise<void> {
     if (!setting.value.async.enable || !setting.value.async.url) return;
     if (parentNode && !(await allow('beforeAsync', parentNode))) return;
@@ -446,6 +585,9 @@ export function useZTree(options: UseZTreeOptions = {}) {
     refresh: rebuildIndexes,
     removeChildNodes,
     removeNode,
+    clearSearch,
+    getSearchMatches: () => searchMatches.value,
+    searchNodes,
     selectAllNodes,
     selectNode,
     setChkDisabled,
@@ -470,6 +612,10 @@ export function useZTree(options: UseZTreeOptions = {}) {
     getVisibleChildren,
     indexes,
     roots,
+    visibleRoots,
+    searchActive,
+    searchMatches,
+    searchQuery,
     selectedNodes,
     setting,
     emitCallback,
